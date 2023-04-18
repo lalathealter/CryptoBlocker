@@ -1,0 +1,42 @@
+{
+
+    "manifest_version": 2,
+    "name": "blocker",
+    "version": "1.0",
+
+    "description": "Block cryptojacking scripts via CPU detection",
+    "homepage_url": "https://github.com/lalathealter",
+
+    "icons": {
+        "48": "icons/ak-48.png"
+    },
+    "background": {
+        "scripts": ["bgChecker.js"],
+        "persistent": false
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["index.js"]
+        }
+    ],
+
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "artkeeper@example.com" 
+        }
+    },
+
+    "permissions": [
+            "activeTab",
+            "system.memory",
+            "system.cpu"
+        ],
+
+   
+
+    "web_accessible_resources": [
+
+    ]
+
+}
