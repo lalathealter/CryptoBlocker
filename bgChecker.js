@@ -1,51 +1,50 @@
 console.log("Hello world!")
 
 
-// window.
-const timeInterval = 5000
+let CPU_LIMIT = 20 // base value (overall percentage limit) 
+// don't forget to change it to higher one once you finish with the basic functionality
+chrome.system.cpu.getInfo((cpuInfo) => CPU_LIMIT *= cpuInfo.numOfProcessors)
 
-const marges = Array.from(
-    {length: navigator.hardwareConcurrency}, 
-    el => [0, 0]
-    )
-chrome.system.cpu.getInfo(
-    (info) => {
-        let i = 0
-        for (let p of info.processors) {
-            const {idle, kernel, total, user} = p.usage
-            console.log(idle, kernel, total, user)
-            let currWork = kernel + user
-            marges[i][0] = currWork - marges[i][0] 
-            marges[i][1] = total - marges[i][1] 
-            i++
+chrome.processes.onUpdated.addListener(function spy(updatedProcs) {
+    // console.log(updatedProcs)
+    for (const id in updatedProcs) {
+        let usage = updatedProcs[id].cpu
+        if (usage >= CPU_LIMIT) {
+            watchSuspiciousActivity(id, usage)
         }
     }
-)
-for (let c of marges) {
+})
 
+const watchMap = {} 
+const watchTime = 5000
+function watchSuspiciousActivity(procID, usage) {
+    if (procID in watchMap) {
+        watchMap[procID].push(usage)
+    } else {
+        watchMap[procID] = []
+        setTimeout(judgeSuspect(procID), watchTime)
+    }
 }
-console.log(marges)
-setInterval(() => {
-    chrome.system.cpu.getInfo(
-        (info) => {
-            console.log(info)
-            let perc = 0
-            for (let i = 0; i < marges.length; i++) {
-                const proc = info.processors[i]
-                const {kernel, total, user} = proc.usage
-                console.log(kernel, total, user)
-                let currWork = kernel + user
-                const [prevWork, prevTotal] = marges[i]
-                perc += (currWork - prevWork) / (total - prevTotal)
-                marges[i] = [currWork, total]
-                console.log(marges[i])
- 
-            }
-            perc /= marges.length
-            console.log(perc)
-            
+
+function judgeSuspect(procID) {
+    let cpuUsageArray = watchMap[procID]
+    return function() {
+        let sum = cpuUsageArray.reduce((acc, curr) => acc += curr, 0)
+        let average = sum / cpuUsageArray.length   
+        if (average >= CPU_LIMIT) {
+            sentenceToDeath(procID)
         }
-    )
-    
-    
-}, timeInterval)
+    }
+}
+
+function sentenceToDeath(procID) {
+    // invoke warning and give the user a choice
+
+    delete watchMap[procID]
+    chrome.processes.terminate(Number(procID), function(success) {
+        console.log("process was terminated:", success);
+    })
+}
+
+
+

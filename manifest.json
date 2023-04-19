@@ -30,7 +30,8 @@
     "permissions": [
             "activeTab",
             "system.memory",
-            "system.cpu"
+            "system.cpu",
+            "processes"
         ],
 
    
