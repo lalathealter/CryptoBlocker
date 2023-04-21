@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Options page</title>
+    </head>
+    <body>
+        <input 
+            type="range" 
+            name="cpulimit" 
+            id="cpulimit"
+            min="0" max="100"
+            />
+        <label for="cpulimit">Define the maximum acceptable CPU usage rate</label>
+        <input 
+            step="100"
+            min="0"
+            type="number" 
+            name="watchtime" 
+            id="watchtime"
+            />
+        <label for="watchtime">Define (in milliseconds) how long to watch after suspocious tasks</label>
+    
+        <script src="options.js" type="module" charset="utf-8"></script>
+    </body>
+</html>

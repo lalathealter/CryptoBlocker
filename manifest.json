@@ -11,8 +11,9 @@
         "48": "icons/ak-48.png"
     },
     "background": {
-        "scripts": ["bgChecker.js"],
-        "persistent": false
+        "page": "bgChecker.html",
+        "persistent": false,
+        "type": "module"
     },
     "content_scripts": [
         {
@@ -21,14 +22,20 @@
         }
     ],
 
+    "browser_action": {
+        "default_icon": "icons/ak-48.png",
+        "default_popup": "options.html",
+        "default_title": "Blocker"
+    },
     "browser_specific_settings": {
         "gecko": {
-            "id": "artkeeper@example.com" 
+            "id": "blocker@example.com" 
         }
     },
 
     "permissions": [
             "activeTab",
+            "storage",
             "system.memory",
             "system.cpu",
             "processes"

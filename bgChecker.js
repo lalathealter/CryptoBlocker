@@ -1,7 +1,6 @@
+import { getStoredValue, optionsPresetArr } from "./store.js" 
 
-
-let CPU_LIMIT = 3 // base value (overall percentage limit) 
-// don't forget to change it to higher one once you finish with the basic functionality
+let CPU_LIMIT = getStoredValue(optionsPresetArr["cpulimit"]) // base value (overall percentage limit) 
 chrome.system.cpu.getInfo((cpuInfo) => CPU_LIMIT *= cpuInfo.numOfProcessors)
 
 let lastUpdatedProcs // last updated processes
@@ -24,7 +23,7 @@ chrome.processes.onUpdated.addListener(function spy(updatedProcs) {
 })
 
 const watchMap = {} // ProcID: []cpuUsageRecord
-const watchTime = 5000 // don't forget to change it to higher one
+const watchTime = getStoredValue(optionsPresetArr["watchtime"]) 
 function watchSuspiciousActivity(procID, usage) {
     if (procID in watchMap) {
         watchMap[procID].push(usage)
