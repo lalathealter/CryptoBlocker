@@ -10,9 +10,12 @@
             type="range" 
             name="cpulimit" 
             id="cpulimit"
-            min="0" max="100"
+            min="5" max="95"
             />
-        <label for="cpulimit">Define the maximum acceptable CPU usage rate</label>
+        <span id="cpulimit-indicator"></span>
+        <br>
+        <label for="cpulimit">The maximum acceptable CPU usage rate</label>
+
         <input 
             step="100"
             min="100"
@@ -20,6 +23,7 @@
             name="watchtime" 
             id="watchtime"
             />
+        <br>
         <label for="watchtime">Define (in milliseconds) how long to watch after suspocious tasks</label>
     
         <script src="options.js" type="module" charset="utf-8"></script>
