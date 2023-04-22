@@ -1,7 +1,25 @@
-import { getStoredValue, optionsPresetArr } from "./store.js" 
+import { getStoredValue } from "./store.js" 
 
-let CPU_LIMIT = getStoredValue(optionsPresetArr["cpulimit"]) // base value (overall percentage limit) 
-chrome.system.cpu.getInfo((cpuInfo) => CPU_LIMIT *= cpuInfo.numOfProcessors)
+let CPU_CORES = 1
+let cpuLimit // base value (overall percentage limit) 
+let watchTime 
+chrome.system.cpu.getInfo((cpuInfo) => {
+    CPU_CORES = cpuInfo.numOfProcessors
+    listenToStorageValues()
+})
+
+window.addEventListener('storage', listenToStorageValues) 
+
+function listenToStorageValues() {
+    let cpuLimitStored = Number(
+        getStoredValue("cpulimit")
+    )
+    cpuLimit = CPU_CORES * cpuLimitStored 
+    watchTime = Number(
+        getStoredValue("watchtime")
+    )
+    console.log(cpuLimit, watchTime)
+}
 
 let lastUpdatedProcs // last updated processes
 chrome.processes.onUpdated.addListener(function spy(updatedProcs) {
@@ -16,14 +34,13 @@ chrome.processes.onUpdated.addListener(function spy(updatedProcs) {
         }
 
         let usage = updatedProcs[id].cpu
-        if (usage >= CPU_LIMIT) {
+        if (usage >= cpuLimit) {
             watchSuspiciousActivity(id, usage)
         }
     }
 })
 
 const watchMap = {} // ProcID: []cpuUsageRecord
-const watchTime = getStoredValue(optionsPresetArr["watchtime"]) 
 function watchSuspiciousActivity(procID, usage) {
     if (procID in watchMap) {
         watchMap[procID].push(usage)
@@ -34,11 +51,11 @@ function watchSuspiciousActivity(procID, usage) {
 }
 
 function judgeSuspect(procID) {
-    let cpuUsageArray = watchMap[procID]
     return function() {
-        let sum = cpuUsageArray.reduce((acc, curr) => acc += curr, 0)
+        let cpuUsageArray = watchMap[procID]
+        let sum = cpuUsageArray.reduce((acc, curr) => acc + Number(curr), 0)
         let average = sum / cpuUsageArray.length   
-        if (average >= CPU_LIMIT) {
+        if (average >= cpuLimit || average < 0) {
             putOnDeathRow(procID)
         }
     }
@@ -88,6 +105,9 @@ function appealForClemency(procID) {
             `dialog.html?process=${procID}&tasks=${taskText}`
         ),
         'warning!', 
-        'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no'
+        `width=400, height=400
+        toolbar=no, location=no, directories=no, 
+        status=no, menubar=no, scrollbars=no, 
+        resizable=no, copyhistory=no`
     )
 }

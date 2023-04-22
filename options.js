@@ -1,15 +1,20 @@
 
-import { optionsPresetArr, setStoredValue, getStoredValue } from "./store.js"
+import { optionsPresetMap, setStoredValue, getStoredValue } from "./store.js"
 
-for (const element of optionsPresetArr) {
-    defineBehaviour(element)
+for (const key in optionsPresetMap) {
+    defineBehaviour(key)
 }
 
-function defineBehaviour(elementPreset) {
-    const [officialName, defaultVal] = elementPreset
-    const elem = document.getElementById(officialName)
-    elem.value = getStoredValue(officialName, defaultVal)
-    elem.onchange = setStoredValue(officialName)
+function defineBehaviour(keyName) {
+    const elem = document.getElementById(keyName)
+    elem.value = getStoredValue(keyName)
+    elem.onchange = bindSetStoredValue(keyName)
 }
 
+function bindSetStoredValue(valName) {
+    return function(ev) {
+        let newVal = ev.target.value
+        setStoredValue(valName, newVal)
+    }
+}
 

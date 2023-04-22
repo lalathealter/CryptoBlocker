@@ -1,24 +1,21 @@
-export const optionsPresetArr = [ 
-    [ "watchtime", 2500 ], 
-    [ "cpulimit", 10 ]
+export const optionsPresetMap = {
+    watchtime: 2500, 
+    cpulimit: 10,
+} 
 // don't forget to change those to higher ones once you finish with the basic functionality
-]
 
-export function getStoredValue(valName, defaultVal) {
-    let properName = (valName)
-    let val = localStorage.getItem(properName)  
+
+export function getStoredValue(valName) {
+    let defaultVal = optionsPresetMap[valName]
+    let val = localStorage.getItem(valName)  
     if (!val) {
-        localStorage.setItem(properName, defaultVal)
+        localStorage.setItem(valName, defaultVal)
         val = defaultVal
     }
     return val 
 }
 
-export function setStoredValue(valName) {
-    return function(ev) {
-        let newVal = ev.target.value
-        let properName =  (valName)
-        localStorage.setItem(properName, newVal)
-    }
+export function setStoredValue(valName, newVal) {
+    localStorage.setItem(valName, newVal)
 }
 
