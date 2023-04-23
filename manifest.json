@@ -38,13 +38,15 @@
             "storage",
             "system.memory",
             "system.cpu",
-            "processes"
+            "processes",
+            "tabs"
         ],
 
    
 
     "web_accessible_resources": [
-
+        "whitelist.json",
+        "blacklist.json"
     ]
 
 }

@@ -18,6 +18,7 @@ function defineBehaviour(keyName) {
     // triggering an event to refresh any available indicators
 }
 
+
 function bindSetStoredValue(valName) {
     let indicateMethod = function() {}
     if (elemsThatNeedIndicators.includes(valName)) {
