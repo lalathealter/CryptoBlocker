@@ -23,7 +23,7 @@
     ],
 
     "browser_action": {
-        "default_icon": "icons/ak-48.png",
+        "default_icon": "icons/cb-48.png",
         "default_popup": "options.html",
         "default_title": "Blocker"
     },
