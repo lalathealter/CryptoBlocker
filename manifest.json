@@ -8,7 +8,7 @@
     "homepage_url": "https://github.com/lalathealter",
 
     "icons": {
-        "48": "icons/ak-48.png"
+        "48": "icons/cb-48.png"
     },
     "background": {
         "page": "bgChecker.html",
