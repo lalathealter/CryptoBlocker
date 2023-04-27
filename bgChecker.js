@@ -159,12 +159,12 @@ function clearFromDeathRow(procID) {
     delete deathRowMap[procID]
 }
 
-chrome.runtime.onMessage.addListener(function listenTheFinalWord(request) {
+chrome.runtime.onMessage.addListener(function listenForFinalDecision(request) {
     if (request.type === TYPE_ORDER) {
         const procID = request.process 
         switch (request.decision) {
             case DECISION_TERMINATE:
-                prepareExecution(procID)
+                decapitate(procID)
                 break;
             case DECISION_RELEASE:
                 findInnocent(procID)
@@ -180,53 +180,44 @@ chrome.runtime.onMessage.addListener(function listenTheFinalWord(request) {
 
 const innocenceList = {} // ProcID: boolean
 function findInnocent(procID) {
-    dismissTheCaseWith(addLinkToWhiteList)(release)(procID)
-}
-
-function release(procID) {
     innocenceList[procID] = true
+    saveURLWith(addLinkToWhiteList)(procID)
 }
 
 function clearFromInnocenceList(procID) {
     delete innocenceList[procID]
 }
 
-function prepareExecution(procID) {
-    console.log("process to terminate:", procID)
-    if (procID in deathRowMap) {
-        dismissTheCaseWith(addLinkToBlackList)(decapitate)(procID)
-    }
-}
 
 function decapitate(procID) {
-   chrome.processes.getProcessInfo(Number(procID), false, function() {
+    console.log("process to terminate:", procID)
+    if (procID in deathRowMap) {
         chrome.processes.terminate(Number(procID), function(success) {
             console.log("process was terminated:", success);
+            saveURLWith(addLinkToBlackList)(procID)
         })
-   }) 
-}
-
-
-function dismissTheCaseWith(saveMethod) {
-    return function(decisionCB) {
-        return function(procID) {
-            chrome.processes.getProcessInfo(Number(procID), false, function(processesDict) {
-                for (const k in processesDict) {
-                    let process = processesDict[k] 
-                    let firstTask = process.tasks.find(task => "tabId" in task)
-                    if (!firstTask) {
-                        return
-                    }
-                    chrome.tabs.get(firstTask.tabId, function(tabObj) {
-                        let targetURL = tabObj.url
-                        saveMethod(targetURL)
-                        decisionCB(procID)
-                    }) 
-                }    
-            })
-        }
     }
 }
+
+
+function saveURLWith(saveMethod) {
+    return function(procID) {
+        chrome.processes.getProcessInfo(Number(procID), false, function(processesDict) {
+            for (const k in processesDict) {
+                let process = processesDict[k] 
+                let firstTask = process.tasks.find(task => "tabId" in task)
+                if (!firstTask) {
+                    return
+                }
+                chrome.tabs.get(firstTask.tabId, function(tabObj) {
+                    let targetURL = tabObj.url
+                    saveMethod(targetURL)
+                }) 
+            }    
+        })
+    }
+}
+
 
 function appealForClemency(procID) {
     chrome.processes.getProcessInfo(Number(procID), false, function(processesDict) {
