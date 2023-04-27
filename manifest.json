@@ -12,7 +12,6 @@
     },
     "background": {
         "page": "bgChecker.html",
-        "persistent": false,
         "type": "module"
     },
     "content_scripts": [
@@ -35,6 +34,8 @@
 
     "permissions": [
             "activeTab",
+            "webRequest",
+            "<all_urls>",
             "storage",
             "system.memory",
             "system.cpu",

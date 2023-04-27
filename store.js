@@ -44,3 +44,54 @@ export function getStoredList(listName) {
     return JSON.parse(localStorage.getItem(listName)) ?? {}
 }
 
+
+export const blacklistsOnGoogleDocSheets = [
+    { 
+        sheetID: "14TWw0lf2x6y8ji5Zd7zv9sIIVixU33irCM-i9CIrmo4",
+        tabNames: [
+            "drupal.js Campaign",
+            "Crypto-Loot Campaign",
+            "vuuwd.com Campaign - Round 1",
+            "vuuwd.com Campaign - Round 2"
+        ]
+    }
+]
+
+export const populateList = populateListFrom(blacklistsOnGoogleDocSheets)
+
+function populateListFrom(googleSheets) {
+    // https://github.com/benborgers/opensheet
+    //example: https://opensheet.elk.sh/spreadsheet_id/tab_name
+
+    const service = "https://opensheet.elk.sh"
+    const linkToService = new URL(service)
+    return function(listRef, listName) {
+        let tabsNeeded = 0
+        for (const sheetObj of googleSheets) {
+            const linkToSheet = new URL(sheetObj.sheetID, linkToService)
+            tabsNeeded += sheetObj.tabNames.length
+            for (const tab of sheetObj.tabNames) {
+                const fullLink = linkToSheet.href + `/${tab}`
+
+                fetch(fullLink)
+                    .then(res => res.json())
+                    .then(jsonRows => {
+                        for (const row of jsonRows) {
+                            const hostReg = row.Domain
+                            listRef[hostReg] = true
+                        }
+                        tabsNeeded--
+                    })
+            }
+        }
+
+        const waiter = setInterval(() => {
+            if (tabsNeeded <= 0) {
+                setStoredList(listName, listRef)
+                clearInterval(waiter)
+            }
+        }, 10000)
+    }
+}
+
+

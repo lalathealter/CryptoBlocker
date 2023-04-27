@@ -1,6 +1,23 @@
-import { getStoredValue, getStoredList, setStoredList  } from "./store.js" 
+import { getStoredValue, populateList, getStoredList, setStoredList  } from "./store.js" 
 import { TYPE_ORDER, DECISION_NONE, DECISION_RELEASE, DECISION_TERMINATE } from "./store.js"
 import { WHITELIST_NAME, BLACKLIST_NAME, CPULIMIT_NAME, WATCHTIME_NAME} from "./store.js"
+
+
+chrome.webRequest.onBeforeRequest.addListener(function lookAfterRequests(details) {
+    const link = details.url
+    if (checkBlackList(link) && !(checkWhiteList(link))) {
+        console.warn(`cancelled blacklisted web request: ${link}`)
+     
+        return {
+            cancel: true,
+        } 
+    }
+}, {urls: ["<all_urls>"]})
+
+const showWarning = function(link) {
+    const warnString =  `Your browser is trying to access a resource from a blacklisted domain: ${link} `
+    window.alert(warnString)
+}
 
 chrome.tabs.onUpdated.addListener(lookAfterTabs)
 function lookAfterTabs(tabID, changeInfo) {
@@ -17,7 +34,7 @@ function lookAfterTabs(tabID, changeInfo) {
         }
 
         if (checkBlackList(newURL)) {
-            // add some user notification 
+            showWarning(newURL)
             decapitate(freshProcID)
             return
         }
@@ -36,6 +53,10 @@ function addLinkToWhiteList(url) {
 }
 
 let blackList = getStoredList(BLACKLIST_NAME) 
+if (Object.keys(blackList).length === 0) {
+    populateList(blackList, BLACKLIST_NAME)
+}
+
 function checkBlackList(url) {
     return checkInList(url, blackList)
 }
@@ -49,16 +70,13 @@ function checkInList(url, listRef) {
         console.error("Error: the listRef does not correspond to a valid object")
         return false 
     }
-    return getHost(url) in listRef
+    const hostName = getHost(url)
+    return hostName === "extension:" || hostName in listRef
 }
-
-// function shareSameHost(linkA, linkB) {
-//     return getHost(linkA) === getHost(linkB)
-// }
 
 function getHost(link) {
     const urlObj = new URL(link)
-    return urlObj.hostname
+    return urlObj.hostname ?? urlObj.protocol
 }
 
 function addNewLinkToList(url, listRef, listName) {
