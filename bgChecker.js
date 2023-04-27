@@ -42,8 +42,6 @@ function lookAfterTabs(tabID, changeInfo) {
 }
 
 let whiteList = getStoredList(WHITELIST_NAME) 
-const selfLink = chrome.runtime.getURL("/") 
-addLinkToWhiteList(selfLink)
 function checkWhiteList(url) { 
     return checkInList(url, whiteList)
 }
