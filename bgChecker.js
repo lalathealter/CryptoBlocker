@@ -1,5 +1,6 @@
 import { getStoredValue, getStoredList, setStoredList  } from "./store.js" 
-
+import { TYPE_ORDER, DECISION_NONE, DECISION_RELEASE, DECISION_TERMINATE } from "./store.js"
+import { WHITELIST_NAME, BLACKLIST_NAME, CPULIMIT_NAME, WATCHTIME_NAME} from "./store.js"
 
 chrome.tabs.onUpdated.addListener(lookAfterTabs)
 function lookAfterTabs(tabID, changeInfo) {
@@ -9,10 +10,6 @@ function lookAfterTabs(tabID, changeInfo) {
     }
     
     chrome.processes.getProcessIdForTab(tabID, function lookupCriminalRecord(freshProcID) {
-        const selfLink = chrome.runtime.getURL("/") 
-        if (shareSameHost(selfLink, newURL)) {
-            return
-        } 
 
         if (checkWhiteList(newURL)) {
             findInnocent(freshProcID)
@@ -27,24 +24,24 @@ function lookAfterTabs(tabID, changeInfo) {
     })
 }
 
-const whiteListStoreName = "whitelist"
-let whiteList = getStoredList(whiteListStoreName) 
+let whiteList = getStoredList(WHITELIST_NAME) 
+const selfLink = chrome.runtime.getURL("/") 
+addLinkToWhiteList(selfLink)
 function checkWhiteList(url) { 
     return checkInList(url, whiteList)
 }
 
 function addLinkToWhiteList(url) {
-    addNewLinkToList(url, whiteList, whiteListStoreName)
+    addNewLinkToList(url, whiteList, WHITELIST_NAME)
 }
 
-const blackListStoreName = "blacklist"
-let blackList = getStoredList(blackListStoreName) 
+let blackList = getStoredList(BLACKLIST_NAME) 
 function checkBlackList(url) {
     return checkInList(url, blackList)
 }
 
 function addLinkToBlackList(url) {
-    addNewLinkToList(url, blackList, blackListStoreName)
+    addNewLinkToList(url, blackList, BLACKLIST_NAME)
 }
 
 function checkInList(url, listRef) {
@@ -55,9 +52,9 @@ function checkInList(url, listRef) {
     return getHost(url) in listRef
 }
 
-function shareSameHost(linkA, linkB) {
-    return getHost(linkA) === getHost(linkB)
-}
+// function shareSameHost(linkA, linkB) {
+//     return getHost(linkA) === getHost(linkB)
+// }
 
 function getHost(link) {
     const urlObj = new URL(link)
@@ -73,27 +70,9 @@ function addNewLinkToList(url, listRef, listName) {
     setStoredList(listName, listRef)
 }
 
-function saveURLFromProcessID(saveMethod) {
-    return function(procID) {
-        chrome.processes.getProcessInfo(Number(procID), false, function(processesDict) {
-            for (const k in processesDict) {
-                let process = processesDict[k] 
-                let firstTask = process.tasks.find(task => "tabId" in task)
-                if (!firstTask) {
-                    return
-                }
-                chrome.tabs.get(firstTask.tabId, function(tabObj) {
-                    let targetURL = tabObj.url
-                    saveMethod(targetURL)
-                }) 
-            }    
-        })
-    }
-}
-
 let CPU_CORES = 1
-let cpuLimit = Number(getStoredValue("cpulimit")) // base value (overall percentage limit) 
-let watchTime = Number(getStoredValue("watchtime")) 
+let cpuLimit = Number(getStoredValue(CPULIMIT_NAME)) // base value (overall percentage limit) 
+let watchTime = Number(getStoredValue(WATCHTIME_NAME)) 
 chrome.system.cpu.getInfo((cpuInfo) => {
     CPU_CORES = cpuInfo.numOfProcessors
     cpuLimit *= CPU_CORES
@@ -103,17 +82,17 @@ window.addEventListener('storage', listenToStorageValues)
 
 function listenToStorageValues(ev) {
     switch (ev.key) {
-        case 'cpulimit':
+        case CPULIMIT_NAME:
             let cpuLimitStored = Number(getStoredValue(ev.key))        
             cpuLimit = CPU_CORES * cpuLimitStored 
             break;
-        case 'watchtime':
+        case WATCHTIME_NAME:
             watchTime = Number(getStoredValue(ev.key)) 
             break;
-        case 'blacklist':
+        case BLACKLIST_NAME:
             blackList = getStoredList(ev.key)
             break
-        case 'whitelist':
+        case WHITELIST_NAME:
             whiteList = getStoredList(ev.key)
             break
         default:
@@ -181,20 +160,31 @@ function clearFromDeathRow(procID) {
 }
 
 chrome.runtime.onMessage.addListener(function listenTheFinalWord(request) {
-    if (request.type === "order-release") {
-        findInnocent(request.process)
-    } 
-    if (request.type === "order-terminate") {
-        prepareExecution(request.process)
+    if (request.type === TYPE_ORDER) {
+        const procID = request.process 
+        switch (request.decision) {
+            case DECISION_TERMINATE:
+                prepareExecution(procID)
+                break;
+            case DECISION_RELEASE:
+                findInnocent(procID)
+                break
+            case DECISION_NONE:
+                break;
+            default:
+                break
+        }
+        clearFromDeathRow(procID)
     }
 })
 
-
 const innocenceList = {} // ProcID: boolean
 function findInnocent(procID) {
-    saveURLFromProcessID(addLinkToWhiteList)(procID)
+    dismissTheCaseWith(addLinkToWhiteList)(release)(procID)
+}
+
+function release(procID) {
     innocenceList[procID] = true
-    clearFromDeathRow(procID)
 }
 
 function clearFromInnocenceList(procID) {
@@ -204,9 +194,7 @@ function clearFromInnocenceList(procID) {
 function prepareExecution(procID) {
     console.log("process to terminate:", procID)
     if (procID in deathRowMap) {
-        saveURLFromProcessID(addLinkToBlackList)(procID)
-        clearFromDeathRow(procID)
-        decapitate(procID)         
+        dismissTheCaseWith(addLinkToBlackList)(decapitate)(procID)
     }
 }
 
@@ -216,6 +204,28 @@ function decapitate(procID) {
             console.log("process was terminated:", success);
         })
    }) 
+}
+
+
+function dismissTheCaseWith(saveMethod) {
+    return function(decisionCB) {
+        return function(procID) {
+            chrome.processes.getProcessInfo(Number(procID), false, function(processesDict) {
+                for (const k in processesDict) {
+                    let process = processesDict[k] 
+                    let firstTask = process.tasks.find(task => "tabId" in task)
+                    if (!firstTask) {
+                        return
+                    }
+                    chrome.tabs.get(firstTask.tabId, function(tabObj) {
+                        let targetURL = tabObj.url
+                        saveMethod(targetURL)
+                        decisionCB(procID)
+                    }) 
+                }    
+            })
+        }
+    }
 }
 
 function appealForClemency(procID) {

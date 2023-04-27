@@ -1,6 +1,16 @@
+export const TYPE_ORDER = "order"
+export const DECISION_TERMINATE = "terminate"
+export const DECISION_RELEASE = "release"
+export const DECISION_NONE = ""
+
+export const WHITELIST_NAME = "whitelist"
+export const BLACKLIST_NAME = "blacklist"
+export const WATCHTIME_NAME = "watchtime"
+export const CPULIMIT_NAME = "cpulimit"
+
 export const optionsPresetMap = {
-    watchtime: 2500, 
-    cpulimit: 10,
+    [WATCHTIME_NAME]: 2500, 
+    [CPULIMIT_NAME]: 10,
 } 
 // don't forget to change those to higher ones once you finish with the basic functionality
 
