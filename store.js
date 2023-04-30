@@ -24,9 +24,8 @@ export function getStoredValue(valName) {
     return val 
 }
 
-export function setStoredValue(valName) {
-    return function(ev) {
-        let newVal = ev.target.value
+export function bindSetStoredValue(valName) {
+    return function(newVal) {
         localStorage.setItem(valName, newVal)
     }
 }
