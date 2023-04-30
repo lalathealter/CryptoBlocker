@@ -12,7 +12,7 @@ chrome.webRequest.onBeforeRequest.addListener(function lookAfterRequests(details
             cancel: true,
         } 
     }
-}, {urls: ["<all_urls>"]})
+}, {urls: ["<all_urls>"]}, ["blocking"])
 
 const showWarning = function(link) {
     const warnString =  `Your browser is trying to access a resource from a blacklisted domain: ${link} `
@@ -27,9 +27,7 @@ function lookAfterTabs(tabID, changeInfo) {
     }
     
     chrome.processes.getProcessIdForTab(tabID, function lookupCriminalRecord(freshProcID) {
-        console.log(newURL)
-        console.log(checkWhiteList(newURL), checkBlackList(newURL))
-        console.log(getHost(newURL))
+
         if (checkWhiteList(newURL)) {
             findInnocent(freshProcID)
             return

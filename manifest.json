@@ -35,6 +35,7 @@
     "permissions": [
             "activeTab",
             "webRequest",
+            "webRequestBlocking",
             "<all_urls>",
             "storage",
             "system.memory",
