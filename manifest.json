@@ -1,11 +1,10 @@
 {
 
     "manifest_version": 2,
-    "name": "blocker",
+    "name": "CryptoBlocker",
     "version": "1.0",
 
-    "description": "Block cryptojacking scripts via CPU detection",
-    "homepage_url": "https://github.com/lalathealter",
+    "description": "Block cryptojacking scripts via CPU detection and blacklisting",
 
     "icons": {
         "48": "icons/cb-48.png"
@@ -14,21 +13,15 @@
         "page": "bgChecker.html",
         "type": "module"
     },
-    "content_scripts": [
-        {
-            "matches": ["<all_urls>"],
-            "js": ["index.js"]
-        }
-    ],
 
     "browser_action": {
         "default_icon": "icons/cb-48.png",
         "default_popup": "options.html",
-        "default_title": "Blocker"
+        "default_title": "CryptoBlocker"
     },
     "browser_specific_settings": {
         "gecko": {
-            "id": "blocker@example.com" 
+            "id": "Daniil.Musin@urfu.me" 
         }
     },
 
@@ -37,18 +30,10 @@
             "webRequest",
             "webRequestBlocking",
             "<all_urls>",
-            "storage",
-            "system.memory",
             "system.cpu",
+            "storage",
             "processes",
             "tabs"
-        ],
-
-   
-
-    "web_accessible_resources": [
-        "whitelist.json",
-        "blacklist.json"
-    ]
+        ]
 
 }

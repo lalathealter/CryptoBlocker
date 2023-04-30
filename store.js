@@ -9,10 +9,9 @@ export const WATCHTIME_NAME = "watchtime"
 export const CPULIMIT_NAME = "cpulimit"
 
 export const optionsPresetMap = {
-    [WATCHTIME_NAME]: 2500, 
-    [CPULIMIT_NAME]: 10,
+    [WATCHTIME_NAME]: 10000, 
+    [CPULIMIT_NAME]: 80,
 } 
-// don't forget to change those to higher ones once you finish with the basic functionality
 
 
 export function getStoredValue(valName) {
@@ -44,7 +43,8 @@ export function getStoredList(listName) {
     return JSON.parse(localStorage.getItem(listName)) ?? {}
 }
 
-
+// Drupal Cryptojacking Campaigns -- Affected Sites
+// https://docs.google.com/spreadsheets/d/14TWw0lf2x6y8ji5Zd7zv9sIIVixU33irCM-i9CIrmo4/
 export const blacklistsOnGoogleDocSheets = [
     { 
         sheetID: "14TWw0lf2x6y8ji5Zd7zv9sIIVixU33irCM-i9CIrmo4",
@@ -60,12 +60,18 @@ export const blacklistsOnGoogleDocSheets = [
 export const populateList = populateListFrom(blacklistsOnGoogleDocSheets)
 
 function populateListFrom(googleSheets) {
+    // this service is used for easier google sheet's reading,
+    // - it helps us to abstract from manually downloading 
+    // the sheets in .csv files and parsing those to json format;
+    // by using it we also spare user's machine resources and
+    // avoid unnecessary interaction with system files;
     // https://github.com/benborgers/opensheet
-    //example: https://opensheet.elk.sh/spreadsheet_id/tab_name
+    // example link: https://opensheet.elk.sh/spreadsheet_id/tab_name
 
     const service = "https://opensheet.elk.sh"
     const linkToService = new URL(service)
     return function(listRef, listName) {
+        console.log(`starting to populate the ${listName} from public sources;`)
         let tabsNeeded = 0
         for (const sheetObj of googleSheets) {
             const linkToSheet = new URL(sheetObj.sheetID, linkToService)
@@ -89,6 +95,7 @@ function populateListFrom(googleSheets) {
             if (tabsNeeded <= 0) {
                 setStoredList(listName, listRef)
                 clearInterval(waiter)
+                console.log(`finished populating the ${listName} from public sources;`)
             }
         }, 10000)
     }

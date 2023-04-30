@@ -120,11 +120,9 @@ function listenToStorageValues(ev) {
         default:
             return     
     }
-    console.log(localStorage)
 }
 
 chrome.processes.onUpdated.addListener(function spy(updatedProcs) {
-    console.log(updatedProcs)
     for (const id in updatedProcs) {
         if (updatedProcs[id].profile === "") {
             continue // internal proccesses
@@ -212,10 +210,10 @@ function clearFromInnocenceList(procID) {
 
 
 function decapitate(procID) {
-    console.log("process to terminate:", procID)
+    console.warn("process to terminate:", procID)
     if (procID in deathRowMap) {
         chrome.processes.terminate(Number(procID), function(success) {
-            console.log("process was terminated:", success);
+            console.warn("process was terminated:", success);
             saveURLWith(addLinkToBlackList)(procID)
         })
     }

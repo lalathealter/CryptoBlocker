@@ -2,7 +2,7 @@
 import { optionsPresetMap, setStoredValue, getStoredValue } from "./store.js"
 
 const elemsThatNeedIndicators = [
-    "cpulimit",
+    CPULIMIT_NAME,
 ]
 
 for (const key in optionsPresetMap) {
@@ -34,7 +34,7 @@ function bindSetStoredValue(valName) {
 function getSurelyImplemented(elemID) {
     const htmlElement = document.getElementById(elemID)
     if (!htmlElement) {
-        alert(`Error! You forgot to implement an html element for the value of ${elemID}`)
+        alert(`Error! No implementation for an html element of the ${elemID} found`)
     }
     return htmlElement
 }
