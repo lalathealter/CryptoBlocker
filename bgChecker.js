@@ -27,7 +27,9 @@ function lookAfterTabs(tabID, changeInfo) {
     }
     
     chrome.processes.getProcessIdForTab(tabID, function lookupCriminalRecord(freshProcID) {
-
+        console.log(newURL)
+        console.log(checkWhiteList(newURL), checkBlackList(newURL))
+        console.log(getHost(newURL))
         if (checkWhiteList(newURL)) {
             findInnocent(freshProcID)
             return
@@ -43,7 +45,7 @@ function lookAfterTabs(tabID, changeInfo) {
 
 let whiteList = getStoredList(WHITELIST_NAME) 
 function checkWhiteList(url) { 
-    return checkInList(url, whiteList)
+    return checkLinkInList(url, whiteList)
 }
 
 function addLinkToWhiteList(url) {
@@ -56,20 +58,26 @@ if (Object.keys(blackList).length === 0) {
 }
 
 function checkBlackList(url) {
-    return checkInList(url, blackList)
+    return checkLinkInList(url, blackList)
 }
 
 function addLinkToBlackList(url) {
     addNewLinkToList(url, blackList, BLACKLIST_NAME)
 }
 
-function checkInList(url, listRef) {
+function checkLinkInList(url, listRef) {
     if (!listRef || typeof listRef !== "object") {
         console.error("Error: the listRef does not correspond to a valid object")
         return false 
     }
     const hostName = getHost(url)
-    return hostName === "extension:" || hostName in listRef
+    return hostName === "extension:" || 
+        hostName.replace("www.", "") in listRef ||
+        "www.".concat(hostName) in listRef
+        // listRef may contain links with or without www.*** signature
+        // and since new URL(...).hostname considers a url with www.*** signature
+        // a different one from the same url, but without www.***,
+        // we check for both cases;
 }
 
 function getHost(link) {
@@ -78,7 +86,7 @@ function getHost(link) {
 }
 
 function addNewLinkToList(url, listRef, listName) {
-    if (checkInList(url, listRef)) {
+    if (checkLinkInList(url, listRef)) {
         return
     }
     const hostEntry = getHost(url)
