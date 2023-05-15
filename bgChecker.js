@@ -132,9 +132,7 @@ chrome.processes.onUpdated.addListener(function spy(updatedProcs) {
         }
 
         let usage = updatedProcs[id].cpu
-        if (usage >= cpuLimit) {
-            watchSuspiciousActivity(id, usage)
-        }
+        watchSuspiciousActivity(id, usage)
     }
 })
 
@@ -165,12 +163,12 @@ function judgeSuspect(procID) {
         if (average >= cpuLimit || average < 0) {
             putOnDeathRow(procID)
         }
+        delete watchMap[procID]
     }
 }
 
 const deathRowMap = {} // ProcID: boolean
 function putOnDeathRow(procID) {
-    delete watchMap[procID]
     deathRowMap[procID] = true
     appealForClemency(procID) // invoke warning and give the user a choice
 }
