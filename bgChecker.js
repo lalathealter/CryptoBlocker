@@ -210,10 +210,12 @@ function clearFromInnocenceList(procID) {
 function decapitate(procID) {
     console.warn("process to terminate:", procID)
     if (procID in deathRowMap) {
-        chrome.processes.terminate(Number(procID), function(success) {
-            console.warn("process was terminated:", success);
-            saveURLWith(addLinkToBlackList)(procID)
-        })
+        saveURLWith(function(input) {
+            addLinkToBlackList(input)
+            chrome.processes.terminate(Number(procID), function(success) {
+                console.warn("process was terminated:", success);
+            })
+        })(procID)
     }
 }
 
