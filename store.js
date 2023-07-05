@@ -45,15 +45,15 @@ export function getStoredList(listName) {
 // Drupal Cryptojacking Campaigns -- Affected Sites
 // https://docs.google.com/spreadsheets/d/14TWw0lf2x6y8ji5Zd7zv9sIIVixU33irCM-i9CIrmo4/
 export const blacklistsOnGoogleDocSheets = [
-    { 
-        sheetID: "14TWw0lf2x6y8ji5Zd7zv9sIIVixU33irCM-i9CIrmo4",
-        tabNames: [
-            "drupal.js Campaign",
-            "Crypto-Loot Campaign",
-            "vuuwd.com Campaign - Round 1",
-            "vuuwd.com Campaign - Round 2"
-        ]
-    }
+    // { 
+    //     sheetID: "14TWw0lf2x6y8ji5Zd7zv9sIIVixU33irCM-i9CIrmo4",
+    //     tabNames: [
+    //         "drupal.js Campaign",
+    //         "Crypto-Loot Campaign",
+    //         "vuuwd.com Campaign - Round 1",
+    //         "vuuwd.com Campaign - Round 2"
+    //     ]
+    // }
 ]
 
 export const populateList = populateListFrom(blacklistsOnGoogleDocSheets)
